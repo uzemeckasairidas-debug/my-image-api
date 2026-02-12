@@ -31,11 +31,20 @@ async def process(request: ImageRequest, x_api_key: str = Depends(verify_api_key
     side = min(h, w)
     img = img[(h-side)//2 : (h+side)//2, (w-side)//2 : (w+side)//2]
     
-    # 3. Add Caption
+    # 3. Add Caption with Background Bar for visibility
     img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img_pil)
-    short_text = " ".join(request.caption.split()[:3])
-    draw.text((20, side-50), short_text, fill="white")
+    
+    # Limit to 3 words and make uppercase
+    short_text = " ".join(request.caption.split()[:3]).upper()
+    
+    # Draw a black bar at the bottom for the text
+    # [left, top, right, bottom]
+    draw.rectangle([0, side-50, side, side], fill="black")
+    
+    # Draw the text in white
+    # Positioned slightly up from the very bottom
+    draw.text((20, side-35), short_text, fill="white")
     
     # 4. Send back
     buf = io.BytesIO()
